@@ -1,26 +1,25 @@
 import { createReport } from 'https://unpkg.com/docx-templates/lib/browser.js';
 
 class DocxGenerator {
-  private templateFile: File | null = null;
-  private jsonData: any = null;
-
   constructor() {
+    this.templateFile = null;
+    this.jsonData = null;
     this.initializeApp();
   }
 
-  private initializeApp(): void {
+  initializeApp() {
     this.setupFileInput();
     this.setupJsonEditor();
     this.setupGenerateButton();
     this.loadDefaultData();
   }
 
-  private setupFileInput(): void {
-    const fileInput = document.getElementById('docxTemplate') as HTMLInputElement;
-    const displayArea = document.getElementById('templateDisplay') as HTMLElement;
+  setupFileInput() {
+    const fileInput = document.getElementById('docxTemplate');
+    const displayArea = document.getElementById('templateDisplay');
 
     fileInput.addEventListener('change', (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
+      const file = event.target.files?.[0];
       if (file) {
         this.templateFile = file;
         displayArea.innerHTML = `
@@ -63,8 +62,8 @@ class DocxGenerator {
     });
   }
 
-  private setupJsonEditor(): void {
-    const jsonTextarea = document.getElementById('jsonData') as HTMLTextAreaElement;
+  setupJsonEditor() {
+    const jsonTextarea = document.getElementById('jsonData');
     
     jsonTextarea.addEventListener('input', () => {
       try {
@@ -76,15 +75,14 @@ class DocxGenerator {
     });
   }
 
-  private setupGenerateButton(): void {
-    const generateBtn = document.getElementById('generateBtn') as HTMLButtonElement;
-    
+  setupGenerateButton() {
+    const generateBtn = document.getElementById('generateBtn');
     generateBtn.addEventListener('click', () => {
       this.generateReport();
     });
   }
 
-  private async loadDefaultData(): Promise<void> {
+  loadDefaultData() {
     const defaultData = {
       "consultation": {
         "roomName": "Salle-Consultation-001",
@@ -134,13 +132,13 @@ class DocxGenerator {
       }
     };
 
-    const jsonTextarea = document.getElementById('jsonData') as HTMLTextAreaElement;
+    const jsonTextarea = document.getElementById('jsonData');
     jsonTextarea.value = JSON.stringify(defaultData, null, 2);
     this.jsonData = defaultData;
     jsonTextarea.style.borderColor = '#48bb78';
   }
 
-  private async generateReport(): Promise<void> {
+  async generateReport() {
     if (!this.templateFile) {
       alert('Merci de sélectionner un template DOCX');
       return;
@@ -151,7 +149,7 @@ class DocxGenerator {
       return;
     }
 
-    const generateBtn = document.getElementById('generateBtn') as HTMLButtonElement;
+    const generateBtn = document.getElementById('generateBtn');
     generateBtn.disabled = true;
     generateBtn.innerHTML = '⏳ Génération en cours...';
 
@@ -185,16 +183,16 @@ class DocxGenerator {
     }
   }
 
-  private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+  readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = reject;
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onload = () => resolve(reader.result);
       reader.readAsArrayBuffer(file);
     });
   }
 
-  private downloadFile(blob: Blob, filename: string): void {
+  downloadFile(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -205,7 +203,7 @@ class DocxGenerator {
     URL.revokeObjectURL(url);
   }
 
-  private formatFileSize(bytes: number): string {
+  formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];

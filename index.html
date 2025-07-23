@@ -17,64 +17,7 @@
 
     <button id="generateBtn">Générer le rapport</button>
 
-    <script type="module">
-        import { createReport } from 'https://unpkg.com/docx-templates/lib/browser.js';
-
-        const readFileAsArrayBuffer = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onerror = reject;
-                reader.onload = () => resolve(reader.result);
-                reader.readAsArrayBuffer(file);
-            });
-        };
-
-        const readFileAsText = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onerror = reject;
-                reader.onload = () => resolve(reader.result);
-                reader.readAsText(file);
-            });
-        };
-
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            const templateInput = document.getElementById('docxTemplate');
-            const jsonInput = document.getElementById('jsonData');
-
-            if (!templateInput.files.length || !jsonInput.files.length) {
-                alert("Merci de fournir le template DOCX et le fichier JSON.");
-                return;
-            }
-
-            const templateFile = templateInput.files[0];
-            const jsonFile = jsonInput.files[0];
-
-            const [template, jsonText] = await Promise.all([
-                readFileAsArrayBuffer(templateFile),
-                readFileAsText(jsonFile),
-            ]);
-
-            const data = JSON.parse(jsonText);
-
-            const report = await createReport({
-                template,
-                data,
-                noSandbox: true,
-                cmdDelimiter: ['{', '}'],
-            });
-
-            const blob = new Blob([report], {
-                type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            });
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'rapport.docx';
-            link.click();
-        });
-    </script>
+    <script type="module" src="./main.js"></script>
 </body>
 
 </html>
