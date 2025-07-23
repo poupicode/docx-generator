@@ -82,60 +82,73 @@ class DocxGenerator {
     });
   }
 
-  loadDefaultData() {
-    const defaultData = {
-      "consultation": {
-        "roomName": "Salle-Consultation-001",
-        "date": "2025-07-21",
-        "time": "14:30",
-        "connectionStatus": "Connecté"
-      },
-      "doctor": {
-        "firstName": "Marie",
-        "name": "Dubois",
-        "occupation": "Cardiologue"
-      },
-      "patient": {
-        "firstName": "Jean",
-        "name": "Martin",
-        "birthDate": "1980-05-15",
-        "gender": "Masculin",
-        "patientNumber": "PAT-2025-0123",
-        "consultationReason": "Contrôle de routine cardiaque"
-      },
-      "measures": {
-        "tensiometre": [
-          {
-            "systolique": "120 mmHg",
-            "diastolique": "80 mmHg",
-            "frequence": "72 bpm",
-            "heure": "14:35"
-          }
-        ],
-        "oxymetre": [
-          {
-            "saturation": "98%",
-            "frequence": "74 bpm",
-            "heure": "14:37"
-          }
-        ],
-        "thermometre": [
-          {
-            "temperature": "36.8°C",
-            "heure": "14:38"
-          }
-        ]
-      },
-      "generation": {
-        "date": "2025-07-21",
-        "time": "15:00"
-      }
-    };
+  async loadDefaultData() {
+    try {
+      // Essaie de charger le fichier data.json
+      const response = await fetch('./data.json');
+      const defaultData = await response.json();
+      
+      const jsonTextarea = document.getElementById('jsonData');
+      jsonTextarea.value = JSON.stringify(defaultData, null, 2);
+      this.jsonData = defaultData;
+      jsonTextarea.style.borderColor = '#48bb78';
+    } catch (error) {
+      // Si le fichier n'existe pas, utilise les données hardcodées
+      console.warn('Impossible de charger data.json, utilisation des données par défaut');
+      const defaultData = {
+        "consultation": {
+          "roomName": "Salle-Consultation-001",
+          "date": "2025-07-21",
+          "time": "14:30",
+          "connectionStatus": "Connecté"
+        },
+        "doctor": {
+          "firstName": "Marie",
+          "name": "Dubois",
+          "occupation": "Cardiologue"
+        },
+        "patient": {
+          "firstName": "Jean",
+          "name": "Martin",
+          "birthDate": "1980-05-15",
+          "gender": "Masculin",
+          "patientNumber": "PAT-2025-0123",
+          "consultationReason": "Contrôle de routine cardiaque"
+        },
+        "measures": {
+          "tensiometre": [
+            {
+              "systolique": "120 mmHg",
+              "diastolique": "80 mmHg",
+              "frequence": "72 bpm",
+              "heure": "14:35"
+            }
+          ],
+          "oxymetre": [
+            {
+              "saturation": "98%",
+              "frequence": "74 bpm",
+              "heure": "14:37"
+            }
+          ],
+          "thermometre": [
+            {
+              "temperature": "36.8°C",
+              "heure": "14:38"
+            }
+          ]
+        },
+        "generation": {
+          "date": "2025-07-21",
+          "time": "15:00"
+        }
+      };
 
-    const jsonTextarea = document.getElementById('jsonData');
-    jsonTextarea.value = JSON.stringify(defaultData, null, 2);
-    this.jsonData = defaultData;
-    jsonTextarea.style.borderColor = '#48bb78';
+      const jsonTextarea = document.getElementById('jsonData');
+      jsonTextarea.value = JSON.stringify(defaultData, null, 2);
+      this.jsonData = defaultData;
+      jsonTextarea.style.borderColor = '#48bb78';
+    }
   }
 
   async generateReport() {
