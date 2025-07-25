@@ -2,16 +2,112 @@ import { createReport } from 'https://unpkg.com/docx-templates/lib/browser.js';
 
 class DocxGenerator {
   constructor() {
-    this.templateFile = null;
+    this.templateFile = null;      // Pour les templates locaux
+    this.templateData = null;      // Pour les templates distants
     this.jsonData = null;
+    this.templates = [];           // Liste des templates distants
     this.initializeApp();
   }
 
   initializeApp() {
+    this.loadTemplatesList();
+    this.setupTemplateSelection();
     this.setupFileInput();
     this.setupJsonEditor();
     this.setupGenerateButton();
     this.loadDefaultData();
+  }
+
+  async loadTemplatesList() {
+    try {
+      const response = await fetch('https://poupicode.github.io/template-library/templates.json');
+      this.templates = await response.json();
+      this.populateTemplateSelect();
+    } catch (error) {
+      console.warn('Impossible de charger les templates distants:', error);
+      this.setupFallbackMode();
+    }
+  }
+
+  populateTemplateSelect() {
+    const select = document.getElementById('templateSelect');
+    select.innerHTML = '<option value="">Choisissez un template...</option>';
+    
+    // Ajouter les templates distants
+    this.templates.forEach((template, index) => {
+      const option = document.createElement('option');
+      option.value = `remote_${index}`;
+      option.textContent = template.description;
+      select.appendChild(option);
+    });
+    
+    // Ajouter l'option upload local
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = '📁 Upload mon template local';
+    select.appendChild(customOption);
+  }
+
+  setupFallbackMode() {
+    const select = document.getElementById('templateSelect');
+    select.innerHTML = '<option value="custom">📁 Upload votre template local</option>';
+    select.value = 'custom';
+    document.getElementById('customUpload').style.display = 'block';
+  }
+
+  setupTemplateSelection() {
+    const select = document.getElementById('templateSelect');
+    const customUpload = document.getElementById('customUpload');
+    
+    select.addEventListener('change', async (e) => {
+      const value = e.target.value;
+      
+      // Reset des templates précédents
+      this.templateFile = null;
+      this.templateData = null;
+      this.hideTemplateStatus();
+      
+      if (value === 'custom') {
+        // Afficher l'upload local
+        customUpload.style.display = 'block';
+      } else if (value.startsWith('remote_')) {
+        // Charger template distant
+        customUpload.style.display = 'none';
+        const index = parseInt(value.replace('remote_', ''));
+        await this.loadRemoteTemplate(this.templates[index]);
+      } else {
+        // Rien sélectionné
+        customUpload.style.display = 'none';
+      }
+    });
+  }
+
+  async loadRemoteTemplate(template) {
+    this.showTemplateStatus('⏳ Téléchargement du template...', '#4facfe');
+    
+    try {
+      const response = await fetch(template.url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      this.templateData = await response.arrayBuffer();
+      this.showTemplateStatus(`✅ ${template.description} chargé`, '#48bb78');
+    } catch (error) {
+      console.error('Erreur de téléchargement:', error);
+      this.showTemplateStatus('❌ Erreur de téléchargement du template', '#f56565');
+      this.templateData = null;
+    }
+  }
+
+  showTemplateStatus(message, color) {
+    const status = document.getElementById('templateStatus');
+    status.innerHTML = message;
+    status.style.color = color;
+    status.style.backgroundColor = color + '20';
+    status.style.display = 'block';
+  }
+
+  hideTemplateStatus() {
+    document.getElementById('templateStatus').style.display = 'none';
   }
 
   setupFileInput() {
@@ -22,6 +118,7 @@ class DocxGenerator {
       const file = event.target.files?.[0];
       if (file) {
         this.templateFile = file;
+        this.templateData = null; // Reset template distant
         displayArea.innerHTML = `
           <div style="color: #48bb78;">✅ ${file.name}</div>
           <small style="color: #718096; margin-top: 10px; display: block;">
@@ -84,7 +181,6 @@ class DocxGenerator {
 
   async loadDefaultData() {
     try {
-      // Essaie de charger le fichier data.json
       const response = await fetch('./data.json');
       const defaultData = await response.json();
       
@@ -93,7 +189,6 @@ class DocxGenerator {
       this.jsonData = defaultData;
       jsonTextarea.style.borderColor = '#48bb78';
     } catch (error) {
-      // Si le fichier n'existe pas, utilise les données hardcodées
       console.warn('Impossible de charger data.json, utilisation des données par défaut');
       const defaultData = {
         "consultation": {
@@ -152,8 +247,9 @@ class DocxGenerator {
   }
 
   async generateReport() {
-    if (!this.templateFile) {
-      alert('Merci de sélectionner un template DOCX');
+    // Vérifier qu'on a un template (local OU distant)
+    if (!this.templateFile && !this.templateData) {
+      alert('Merci de sélectionner un template');
       return;
     }
 
@@ -167,7 +263,14 @@ class DocxGenerator {
     generateBtn.innerHTML = '⏳ Génération en cours...';
 
     try {
-      const template = await this.readFileAsArrayBuffer(this.templateFile);
+      let template;
+      if (this.templateFile) {
+        // Template local
+        template = await this.readFileAsArrayBuffer(this.templateFile);
+      } else {
+        // Template distant (déjà en ArrayBuffer)
+        template = this.templateData;
+      }
       
       const report = await createReport({
         template: new Uint8Array(template),

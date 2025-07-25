@@ -139,6 +139,23 @@
             border-color: #4facfe;
         }
         
+        .template-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .template-select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
         .generate-section {
             grid-column: 1 / -1;
             text-align: center;
@@ -196,15 +213,27 @@
                     <span class="icon">📄</span>
                     Template Word
                 </h2>
-                <div class="file-input-wrapper">
-                    <input type="file" id="docxTemplate" class="file-input" accept=".docx" />
-                    <div class="file-input-display" id="templateDisplay">
-                        <div>📁 Cliquez pour sélectionner un fichier .docx</div>
-                        <small style="color: #718096; margin-top: 10px; display: block;">
-                            Glissez-déposez votre template ici
-                        </small>
+                
+                <!-- Sélecteur de templates -->
+                <select id="templateSelect" class="template-select">
+                    <option value="">🔄 Chargement des templates...</option>
+                </select>
+                
+                <!-- Zone d'upload (cachée par défaut) -->
+                <div id="customUpload" style="display: none;">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="docxTemplate" class="file-input" accept=".docx" />
+                        <div class="file-input-display" id="templateDisplay">
+                            <div>📁 Cliquez pour sélectionner un fichier .docx</div>
+                            <small style="color: #718096; margin-top: 10px; display: block;">
+                                Glissez-déposez votre template ici
+                            </small>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Status display -->
+                <div id="templateStatus" style="margin-top: 15px; padding: 10px; border-radius: 8px; display: none;"></div>
             </div>
             
             <div class="section">
